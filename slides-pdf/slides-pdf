@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+"""HTML de slides -> PDF (1 página por .slide, 960x540pt), com checagem de estouro.
+Uso: slides-pdf deck.html [-o saida.pdf] [--png pasta]
+- Falha (exit 1) se algum .slide tiver conteúdo estourando a caixa ou se nº de páginas != nº de slides.
+- --png salva um PNG por slide (pra conferir o visual)."""
+import argparse, pathlib, sys
+from playwright.sync_api import sync_playwright
+
+ap = argparse.ArgumentParser()
+ap.add_argument("html"); ap.add_argument("-o"); ap.add_argument("--png")
+a = ap.parse_args()
+src = pathlib.Path(a.html).resolve()
+out = pathlib.Path(a.o).resolve() if a.o else src.with_suffix(".pdf")
+
+# ponytail: estouro = scrollHeight > clientHeight no slide ou em qualquer filho com overflow; não pega texto cortado por overflow:hidden de largura
+CHECK = """() => [...document.querySelectorAll('.slide')].map((s, i) => {
+  const bad = [s, ...s.querySelectorAll('.body, .card, .code, .step')].filter(e => e.scrollHeight > e.clientHeight + 1);
+  return bad.length ? `slide ${i + 1} (#${s.id}): ${bad.length} elemento(s) estourando` : null;
+}).filter(Boolean)"""
+
+with sync_playwright() as p:
+    b = p.chromium.launch(); pg = b.new_page(viewport={"width": 1280, "height": 720})
+    pg.goto(src.as_uri(), wait_until="networkidle"); pg.evaluate("document.fonts.ready")
+    n = pg.locator(".slide").count()
+    erros = pg.evaluate(CHECK)
+    if a.png:
+        d = pathlib.Path(a.png); d.mkdir(parents=True, exist_ok=True)
+        for i in range(n): pg.locator(".slide").nth(i).screenshot(path=str(d / f"{i + 1:02d}.png"))
+    pg.emulate_media(media="print")
+    pg.pdf(path=str(out), prefer_css_page_size=True, print_background=True)
+    b.close()
+
+from pypdf import PdfReader
+pags = len(PdfReader(out).pages)
+print(f"{out} — {pags} páginas, {n} slides")
+if pags != n: erros.append(f"páginas ({pags}) != slides ({n})")
+for e in erros: print("ERRO:", e)
+sys.exit(1 if erros else 0)

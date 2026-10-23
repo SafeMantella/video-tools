@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# video-camadas pessoa|verde|faces|camadas|zoom|sfx ... (ver SKILL em .claude/skills/video-camadas)
+D="$(cd "$(dirname "$0")" && pwd)"; exec "$D/venv/bin/python" "$D/video_camadas.py" "$@"

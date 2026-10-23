@@ -1,0 +1,9 @@
+#!/usr/bin/env python3
+"""Troca a logo de um deck HTML (definida uma vez em --logo no :root) e atualiza kit/arfux-logo.png.
+Uso: set-logo deck.html nova-logo.png"""
+import base64, pathlib, re, shutil, sys
+deck, logo = map(pathlib.Path, sys.argv[1:3])
+uri = "data:image/png;base64," + base64.b64encode(logo.read_bytes()).decode()
+t = deck.read_text(); n = re.subn(r"--logo: url\([^)]*\);", lambda _: f"--logo: url({uri});", t, count=1)
+if not n[1]: sys.exit("ERRO: --logo não encontrado no :root do deck")
+deck.write_text(n[0]); shutil.copy(logo, pathlib.Path(__file__).parent / "kit" / "arfux-logo.png"); print("logo trocada em", deck)
