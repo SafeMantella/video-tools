@@ -58,3 +58,7 @@ Criado pro projeto de redes sociais do autor, no macOS. Há comentários e exemp
 ## Repos relacionados
 
 Do kit do [@SafeMantella](https://github.com/SafeMantella): [video-cut-pipeline](https://github.com/SafeMantella/video-cut-pipeline) (corte antes das camadas), [transcrever-ptbr](https://github.com/SafeMantella/transcrever-ptbr) (legendas), [sau-tools](https://github.com/SafeMantella/sau-tools) (postar), [social-toolbox](https://github.com/SafeMantella/social-toolbox), [token-kit](https://github.com/SafeMantella/token-kit).
+
+## Licença
+
+MIT. Veja [LICENSE](LICENSE).
